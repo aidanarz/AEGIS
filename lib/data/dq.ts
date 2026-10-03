@@ -7,6 +7,7 @@ import { DQ_BY_CODE } from "./dq-catalog";
 import { fromJson } from "./json";
 import { AS_OF_DATE, extractPlantCode } from "./normalize";
 import type { MonitoredParameter } from "./source-types";
+import { piRoleForLabel } from "./param-match";
 
 /** PRD §6.2.2 failure-mechanism vocabulary. Anything outside it is a truncated / mis-split value (DQ-4). */
 const MECHANISM_VOCABULARY = new Set([
@@ -17,14 +18,7 @@ const MECHANISM_VOCABULARY = new Set([
 /** PI roles that are only meaningful on rotating / driven equipment (DQ-7). */
 const ROTATING_ONLY_ROLES = new Set(["vibration", "motor_current"]);
 
-/** Generic keyword map: weekly parameter label → hourly PI role (DQ-8). Same rule for every asset. */
-const LABEL_TO_PI_ROLE: [RegExp, string][] = [
-  [/\bvibration\b/i, "vibration"],
-  [/\btemp\b|temperature/i, "temperature"],
-  [/\bampere\b|\bcurrent\b/i, "motor_current"],
-  [/discharge press/i, "discharge_pressure"],
-  [/\bfeed rate\b/i, "feed_rate"],
-];
+
 
 type IssueInput = {
   code: string;
@@ -108,7 +102,7 @@ export async function runDataQualityChecks(prisma: PrismaClient): Promise<DqRunR
   for (const eq of focus) {
     const piRoles = new Set(eq.instruments.map((i) => i.parameter));
     for (const p of fromJson<MonitoredParameter[]>(eq.monitoredParametersJson, [])) {
-      const role = LABEL_TO_PI_ROLE.find(([re]) => re.test(p.parameter))?.[1];
+      const role = piRoleForLabel(p.parameter);
       if (!role || !piRoles.has(role)) {
         push({
           code: "DQ-8",

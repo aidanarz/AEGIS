@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AppNav } from "@/components/app-nav";
+import { RoleProvider } from "@/components/role-provider";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -12,10 +13,12 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en">
       <body className="min-h-screen antialiased">
-        <TooltipProvider>
-          <AppNav />
-          <main className="mx-auto max-w-[1400px] px-6 py-6">{children}</main>
-        </TooltipProvider>
+        <RoleProvider>
+          <TooltipProvider>
+            <AppNav />
+            <main className="mx-auto max-w-[1400px] px-6 py-6">{children}</main>
+          </TooltipProvider>
+        </RoleProvider>
       </body>
     </html>
   );

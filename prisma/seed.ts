@@ -19,6 +19,8 @@ import { toJson } from "../lib/data/json";
 import { runDataQualityChecks } from "../lib/data/dq";
 import { DQ_CATALOG } from "../lib/data/dq-catalog";
 import { logLoad } from "../lib/data/sources";
+import { validateDetector } from "../lib/detect/run";
+import { generateAlerts } from "../lib/alerts/generate";
 import {
   SOURCE_SYSTEMS,
   type EquipmentPerformanceRecord,
@@ -388,6 +390,8 @@ async function main() {
 
   await logLoad(prisma, startedAt);
   const dq = await runDataQualityChecks(prisma);
+  const alerts = await generateAlerts(prisma);
+  const detector = await validateDetector(prisma);
 
   await report(incidents, rcas, equipmentPerf, production, Date.now() - t0);
 
@@ -400,6 +404,13 @@ async function main() {
     console.log(`${c.agree ? "✔" : "✘"} ${c.code} ${c.flag.padEnd(24)} computed=${c.computed} inFile=${c.inSourceFile}`);
     if (!c.agree) process.exitCode = 1;
   }
+
+  console.log("\n── Detector validation vs PRD §6.6 lead times (±2 h) ──");
+  for (const d of detector) {
+    console.log(`${d.pass ? "✔" : "✘"} ${d.tag.padEnd(9)} primary=${d.primarySignal.padEnd(13)} expected=${d.expectedLeadH} h  actual=${d.actualLeadH} h  Δ=${d.deltaH} h  peak=${d.peakZ}σ → ${d.severity}`);
+    if (!d.pass) process.exitCode = 1;
+  }
+  console.log(`\n── Alerts generated: ${alerts.total} (${Object.entries(alerts.bySource).map(([k, v]) => `${k} ${v}`).join(", ")}); ${alerts.reviewNow} score ≥ 0.7 ──`);
 }
 
 // ── Count check vs PRD §14 + cross-source reconciliation (§6.5) ───────────

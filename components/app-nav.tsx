@@ -3,10 +3,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { RoleSwitcher } from "@/components/role-provider";
 
 // Routes are added here as each phase ships them.
 const NAV = [
   { href: "/dashboard", label: "Dashboard", pillar: "Single Pane of Glass" },
+  { href: "/incidents", label: "Incidents", pillar: "Unified records" },
   { href: "/data-sources", label: "Data Sources", pillar: "Data Foundation" },
 ];
 
@@ -37,6 +39,9 @@ export function AppNav() {
             );
           })}
         </nav>
+        <div className="ml-auto">
+          <RoleSwitcher />
+        </div>
       </div>
       <div className="h-1 bg-gradient-to-r from-cyan via-cyan-deep to-lime" />
     </header>

@@ -13,19 +13,23 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 
 export const dynamic = "force-dynamic";
 
-export default async function DqDrillPage({ params }: { params: Promise<{ code: string }> }) {
+export default async function DqDrillPage({ params, searchParams }: { params: Promise<{ code: string }>; searchParams: Promise<{ page?: string }> }) {
   const { code } = await params;
   const def = DQ_BY_CODE[code.toUpperCase()];
   if (!def) notFound();
 
   const issues = await prisma.dataQualityIssue.findMany({ where: { code: def.code }, orderBy: [{ entity: "asc" }, { id: "asc" }] });
   const incidentIds = issues.filter((i) => i.entity === "Incident").map((i) => Number(i.recordId));
-  const incidents = incidentIds.length ? await prisma.incident.findMany({ where: { serialNo: { in: incidentIds } }, orderBy: { serialNo: "asc" } }) : [];
+  const page = Math.max(1, Number((await searchParams).page) || 1);
+  const PAGE = 100;
+  const pageIds = incidentIds.slice((page - 1) * PAGE, page * PAGE);
+  const pages = Math.ceil(incidentIds.length / PAGE);
+  const incidents = pageIds.length ? await prisma.incident.findMany({ where: { serialNo: { in: pageIds } }, orderBy: { serialNo: "asc" } }) : [];
   const issueByRecord = new Map(issues.map((i) => [i.recordId, i]));
 
   // All DQ codes on each shown incident (a record can carry several findings).
   const allCodes = incidentIds.length
-    ? await prisma.dataQualityIssue.findMany({ where: { entity: "Incident", recordId: { in: incidentIds.map(String) } }, select: { recordId: true, code: true } })
+    ? await prisma.dataQualityIssue.findMany({ where: { entity: "Incident", recordId: { in: pageIds.map(String) } }, select: { recordId: true, code: true } })
     : [];
   const codesFor = (serial: number) => allCodes.filter((c) => c.recordId === String(serial)).map((c) => c.code);
 
@@ -98,6 +102,24 @@ export default async function DqDrillPage({ params }: { params: Promise<{ code: 
               ))}
             </TableBody>
           </Table>
+          {pages > 1 && (
+            <div className="flex items-center justify-between border-t border-card-border px-3 py-2 text-sm">
+              <span className="text-muted-foreground">
+                Rows {(page - 1) * PAGE + 1}–{Math.min(page * PAGE, incidentIds.length)} of {incidentIds.length}
+              </span>
+              <span className="flex gap-1">
+                {Array.from({ length: pages }, (_, i) => i + 1).map((p) => (
+                  <Link
+                    key={p}
+                    href={`/data-sources/dq/${def.code}?page=${p}`}
+                    className={p === page ? "rounded bg-navy px-2.5 py-1 text-white" : "rounded border border-card-border bg-white px-2.5 py-1 text-navy hover:border-cyan"}
+                  >
+                    {p}
+                  </Link>
+                ))}
+              </span>
+            </div>
+          )}
         </Card>
       ) : (
         <Card className="border-card-border py-0">

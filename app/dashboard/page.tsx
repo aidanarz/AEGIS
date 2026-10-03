@@ -1,20 +1,17 @@
-import { prisma } from "@/lib/data/prisma";
-import { getFunctionCoverage } from "@/lib/data/function-coverage";
-import { PageHeader, Section } from "@/components/page-header";
-import { FunctionCoverageGrid } from "@/components/function-coverage-grid";
+import { PageHeader } from "@/components/page-header";
+import { DashboardView } from "@/components/dashboard/dashboard-view";
 
 export const dynamic = "force-dynamic";
 
-// FR-2.1 host screen. Phase 1 ships the 7 function tiles with §6.7 coverage badges;
-// Phase 2 adds KPIs, prioritized alerts, loss trend, heatmap and RCA counters.
-export default async function DashboardPage() {
-  const coverage = await getFunctionCoverage(prisma);
+export default function DashboardPage() {
   return (
     <>
-      <PageHeader pillar="Pillar 2 · Single Pane of Glass (KQ2)" title="Executive Dashboard" />
-      <Section title="Functions" description="All 7 functions from the brief, each with an explicit data-coverage badge. Hover a badge for why.">
-        <FunctionCoverageGrid items={coverage} />
-      </Section>
+      <PageHeader pillar="Pillar 2 · Single Pane of Glass (KQ2)" title="Executive Dashboard">
+        <p className="max-w-md text-right text-xs text-muted-foreground">
+          All figures computed live from the unified database · overdue logic as of 3 Oct 2026 · 12 plants, 380 incidents, 5 assets with full 4-source linkage
+        </p>
+      </PageHeader>
+      <DashboardView fn={null} />
     </>
   );
 }
