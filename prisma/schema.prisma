@@ -1,0 +1,387 @@
+// CALIBER 2026 Case 2 — Intelligence Manufacturing
+// Unified data model (PRD §9.4). All rows are loaded from /mock-data — no synthetic records.
+//
+// Conventions
+// - equipmentTag / plantCode are always the CANONICAL forms (§6.3): hyphenated tag, 3-letter plant code.
+// - Enum-like strings are validated in lib/data/enums.ts (zod). `*Json` fields hold JSON text,
+//   parsed through lib/data/json.ts.
+// - Every unified record carries kpiCategory + plantCode (FR-1.2) and sourceSystem + sourceRecordId (FR-1.4).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+/// FR-3.4 — who created a tracked action
+enum ActionCreatedBy {
+  ai
+  user_edited   @map("user-edited")
+  imported_capa @map("imported-capa")
+  user
+}
+
+/// §7.2 Action Tracker columns
+enum ActionStatus {
+  open
+  in_progress
+  done
+}
+
+model Plant {
+  code        String  @id // ARP, ZCU, ... (12)
+  name        String? // only 4 known (RCA decks); null for the other 8 — never invented
+  nameSource  String?
+  aliasesJson String  @default("[]") // raw spellings seen across sources
+
+  equipment  Equipment[]
+  incidents  Incident[]
+  rcaReports RcaReport[]
+}
+
+model Equipment {
+  tag                     String    @id // canonical hyphenated tag
+  plantCode               String
+  plant                   Plant     @relation(fields: [plantCode], references: [code])
+  isFocus                 Boolean   @default(false) // present in Equipment Performance (and so in all 4 sources)
+  equipmentName           String?
+  equipmentTypeCode       String? // Incident DB code: PU, CO, BL, EM, TX…
+  equipmentTypeName       String? // Equipment Performance: "Centrifugal Pump"
+  equipmentClass          String?
+  discipline              String?
+  criticality             String?
+  designLife              String?
+  monitoringMethod        String?
+  plantUnitRaw            String?
+  linkedRcaNo             String?
+  failureDate             DateTime?
+  dominantFailureMode     String? // stripped from AI context in leave-one-out mode
+  monitoredParametersJson String    @default("[]") // [{parameter, alarm, trip}] — data-driven (FR-1.5)
+  performanceSummaryJson  String?
+  kpiCategory             String    @default("reliability")
+  sourceSystem            String
+  sourceRecordId          String
+
+  conditionReadings ConditionReading[]
+  incidents         Incident[]
+  instruments       ProductionInstrument[]
+  readings          ProductionReading[]
+  runStatuses       RunStatus[]
+  productionDataset ProductionDataset?
+  rcaReports        RcaReport[]
+  alerts            Alert[]
+}
+
+model ConditionReading {
+  id             Int       @id @default(autoincrement())
+  equipmentTag   String
+  equipment      Equipment @relation(fields: [equipmentTag], references: [tag])
+  plantCode      String
+  week           Int
+  date           DateTime
+  readingsJson   String // { "<parameter label>": value } — keys match monitoredParameters
+  healthStatus   String // NORMAL | ALARM | TRIP
+  remark         String?
+  kpiCategory    String    @default("reliability")
+  sourceSystem   String
+  sourceRecordId String // "PU-2101B#w1"
+
+  @@unique([equipmentTag, week])
+}
+
+model Incident {
+  serialNo             Int        @id // ONLY reliable unique key (§6.3)
+  incidentId           String     @unique
+  mtoNo                String
+  arNo                 String? // nullable + duplicated — never a key
+  rcaId                String? // set only when arNo matches an RcaReport
+  rcaReport            RcaReport? @relation(fields: [rcaId], references: [rcaId])
+  plantCode            String
+  plant                Plant      @relation(fields: [plantCode], references: [code])
+  equipmentTag         String
+  equipment            Equipment  @relation(fields: [equipmentTag], references: [tag])
+  equipmentClass       String
+  equipmentType        String
+  discipline           String
+  component            String
+  dateOfOccurrence     DateTime
+  monthYear            String // "Mar-2026" as in source
+  monthKey             String // (derived) "2026-03"
+  riskCaseTitle        String
+  highestImpact        String
+  preRisk              String
+  riskScore            Int
+  picRca               String
+  ownerFunction        String? // (derived) PIC prefix §6.7
+  overallStatus        String
+  statusNormalized     String
+  failureMechanism     String // raw (truncated on focus rows — DQ-4)
+  downtimeHours        Float
+  actualLossKUSD       Float
+  potentialLossKUSD    Float
+  totalLossKUSD        Float
+  rcaDueDate           DateTime?
+  rcaOverdue           Boolean
+  dataQualityFlagsJson String     @default("[]")
+  kpiCategory          String
+  secondaryKpi         String?
+  sourceSystem         String
+  sourceRecordId       String
+
+  alerts Alert[]
+
+  @@index([plantCode])
+  @@index([equipmentTag])
+  @@index([statusNormalized, rcaOverdue])
+}
+
+model ProductionDataset {
+  equipmentTag      String    @id
+  equipment         Equipment @relation(fields: [equipmentTag], references: [tag])
+  plantCode         String
+  periodStart       DateTime
+  periodEnd         DateTime
+  rows              Int
+  linkedRcaIndex    Int
+  fileKpiCategory   String // as declared in file ("throughput")
+  sourceDerivedJson String // file's `derived` block — reference only, used to validate our detector
+  sourceSystem      String
+  sourceRecordId    String
+}
+
+model ProductionInstrument {
+  id               Int       @id @default(autoincrement())
+  equipmentTag     String
+  equipment        Equipment @relation(fields: [equipmentTag], references: [tag])
+  plantCode        String
+  name             String // PU2101B_VIB | PLANT_RATE
+  instrumentTag    String // NOT unique (PLTRMT.PV appears in all 5 files)
+  description      String
+  parameter        String
+  engUnits         String
+  engUnitsObserved String
+  span             Float
+  typicalValue     Float
+  zero             Float
+  digitalSet       String?
+  dataQualityNote  String?
+  kpiCategory      String // (derived per role, §6.4)
+  sourceSystem     String
+  sourceRecordId   String
+
+  readings ProductionReading[]
+
+  @@unique([equipmentTag, name])
+}
+
+model ProductionReading {
+  id           Int                  @id @default(autoincrement())
+  equipmentTag String
+  equipment    Equipment            @relation(fields: [equipmentTag], references: [tag])
+  plantCode    String
+  timestamp    DateTime
+  parameter    String // instrument name, e.g. PU2101B_VIB
+  instrument   ProductionInstrument @relation(fields: [equipmentTag, parameter], references: [equipmentTag, name])
+  value        Float
+  unit         String // engUnitsObserved
+  kpiCategory  String
+
+  @@unique([equipmentTag, timestamp, parameter])
+  @@index([equipmentTag, parameter, timestamp])
+}
+
+model RunStatus {
+  equipmentTag String
+  equipment    Equipment @relation(fields: [equipmentTag], references: [tag])
+  timestamp    DateTime
+  status       String // ON | OFF
+
+  @@id([equipmentTag, timestamp])
+}
+
+model RcaReport {
+  rcaId              String    @id
+  equipmentTag       String
+  equipment          Equipment @relation(fields: [equipmentTag], references: [tag])
+  plantCode          String
+  plant              Plant     @relation(fields: [plantCode], references: [code])
+  plantNameRaw       String
+  equipmentClass     String
+  discipline         String
+  title              String
+  dateOccurrence     DateTime
+  dateReported       DateTime
+  immediateAction    String
+  severity           String
+  preRisk            String
+  preRiskScore       Int
+  picRca             String
+  downtimeHours      Float
+  productionLossTon  Float
+  estimatedLossKUSD  Float
+  problemStatement   String
+  historicalEvidence String
+  targetCondition    String
+  chronologyJson     String
+  verifiedRootCause  String
+  methodologyJson    String
+  capaSummaryJson    String
+  kpiCategory        String
+  sourceSystem       String
+  sourceRecordId     String
+
+  verifications RcaVerification[]
+  capaActions   CapaAction[]
+  pmSchedules   PmSchedule[]
+  incidents     Incident[]
+  actions       Action[]
+}
+
+model RcaVerification {
+  rcaId             String
+  rcaReport         RcaReport @relation(fields: [rcaId], references: [rcaId])
+  ref               String // P1..P5 | X1..X4
+  method            String // 4P | 4M+1E
+  parameterOrFactor String
+  result            String // G | NG
+  evidence          String
+
+  @@id([rcaId, ref])
+}
+
+model CapaAction {
+  id                Int       @id @default(autoincrement())
+  rcaId             String
+  rcaReport         RcaReport @relation(fields: [rcaId], references: [rcaId])
+  plantCode         String
+  kind              String // corrective | proactive | preventive | riskOfCorrectiveAction
+  seq               Int // position within kind (risk rows have no ref)
+  ref               String?
+  action            String
+  possibleRootCause String?
+  potentialRisk     String?
+  countermeasure    String?
+  planDate          DateTime?
+  pic               String
+  ownerFunction     String?
+  sourceStatus      String? // null where the deck gives none — not invented
+  kpiCategory       String
+  trackedAction     Action?
+
+  @@unique([rcaId, kind, seq])
+}
+
+model PmSchedule {
+  rcaId       String
+  rcaReport   RcaReport @relation(fields: [rcaId], references: [rcaId])
+  pmNo        String
+  description String
+  group       String
+  interval    String
+
+  @@id([rcaId, pmNo])
+}
+
+model Alert {
+  id                 String    @id // det-<tag>, hs-<tag>-w<week>, inc-<serialNo>
+  source             String // detector | healthStatus | incident
+  equipmentTag       String
+  equipment          Equipment @relation(fields: [equipmentTag], references: [tag])
+  plantCode          String
+  incidentSerialNo   Int?
+  incident           Incident? @relation(fields: [incidentSerialNo], references: [serialNo])
+  rcaId              String?
+  title              String
+  triggeredBy        String
+  triggeredAt        DateTime
+  severity           String // critical | high | medium | low
+  severityBasis      String
+  priorityScore      Float
+  scoreBreakdownJson String
+  detailJson         String
+  status             String    @default("open") // open | acknowledged | resolved
+  createdAt          DateTime  @default(now())
+
+  aiAnalyses AiAnalysis[]
+  actions    Action[]
+
+  @@index([priorityScore])
+}
+
+model AiAnalysis {
+  id           Int      @id @default(autoincrement())
+  alertId      String
+  alert        Alert    @relation(fields: [alertId], references: [id])
+  mode         String // live | leave-one-out
+  engine       String // llm | fallback
+  model        String?
+  requestJson  String
+  responseJson String
+  latencyMs    Int?
+  attempts     Int      @default(1)
+  createdAt    DateTime @default(now())
+
+  actions Action[]
+}
+
+model Action {
+  id            Int             @id @default(autoincrement())
+  title         String
+  description   String?
+  ownerCode     String?
+  ownerFunction String?
+  dueDate       DateTime?
+  status        ActionStatus    @default(open)
+  sourceStatus  String? // original CAPA status (DQ-12 snapshot)
+  priority      String?
+  createdBy     ActionCreatedBy
+  alertId       String?
+  alert         Alert?          @relation(fields: [alertId], references: [id])
+  rcaId         String?
+  rcaReport     RcaReport?      @relation(fields: [rcaId], references: [rcaId])
+  rootCauseRef  String?
+  capaActionId  Int?            @unique
+  capaAction    CapaAction?     @relation(fields: [capaActionId], references: [id])
+  aiAnalysisId  Int?
+  aiAnalysis    AiAnalysis?     @relation(fields: [aiAnalysisId], references: [id])
+  closedAt      DateTime?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+}
+
+/// FR-1.3 — one row per source file per ingestion / re-validation run ("last refresh").
+model IngestRun {
+  id          Int      @id @default(autoincrement())
+  source      String // Equipment Performance | Incident Database | Production Data | RCA & Downtime
+  file        String
+  kind        String // load | revalidate
+  status      String // ok | changed | failed
+  recordCount Int
+  fileBytes   Int
+  sha256      String
+  note        String?
+  startedAt   DateTime
+  finishedAt  DateTime
+
+  @@index([source, finishedAt])
+}
+
+model DataQualityIssue {
+  id           Int     @id @default(autoincrement())
+  code         String // DQ-1 … DQ-13
+  flag         String // missing_ar_no, unit_mismatch, …
+  entity       String // Incident | ProductionInstrument | CapaAction | …
+  recordId     String
+  equipmentTag String?
+  plantCode    String?
+  severity     String // info | warning
+  message      String
+  handling     String
+  sourceSystem String
+
+  @@unique([entity, recordId, code])
+  @@index([code])
+}
