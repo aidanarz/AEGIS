@@ -1,0 +1,165 @@
+{
+  "$comment": "PRD §8.5 rule-based fallback (FR-3.5). Lookup: exact equipmentTag first, then generic pattern rules evaluated against data-derived facts (detector signal roles/directions, equipment type, monitored parameters, incident mechanism). Exact rules are DISABLED in leave-one-out mode because they contain the verified answer. Extend by adding entries — no code change needed.",
+  "version": 1,
+  "exact": [
+    {
+      "equipmentTag": "PU-2101B",
+      "sourceRcaId": "AR-2026-ARP-0117",
+      "rootCause": "Premature mechanical seal failure from intermittent dry-running: suction cavitation + seal-flush flow below 6 L/min, no protection interlock",
+      "action": {
+        "title": "Install seal-flush flow switch with DCS alarm; add low-NPSH / loss-of-flush trip interlock",
+        "description": "Install a seal-flush flow switch with DCS alarm on PU-2101B and add a low-NPSH / loss-of-flush trip interlock so the seal is protected from dry-running during feed swings."
+      },
+      "owner": { "function": "Reliability", "code": "REL-05" },
+      "dataGaps": ["Seal-flush flow at hourly resolution", "Suction pressure / NPSH margin"]
+    },
+    {
+      "equipmentTag": "KO-3201",
+      "sourceRcaId": "AR-2026-ZCU-0142",
+      "rootCause": "Journal-bearing babbitt distress from water ingress via leaking lube-oil cooler tube; no online water-in-oil monitoring",
+      "action": {
+        "title": "Repair/plug lube-oil cooler tube and retest; install online water-in-oil sensor; tighten vibration alert to 45 µm",
+        "description": "Maintenance (Static) STA-02 repairs/plugs and retests the lube-oil cooler; Reliability REL-05 installs an online water-in-oil sensor and tightens the vibration alert to 45 µm."
+      },
+      "owner": { "function": "Maintenance", "code": "STA-02" },
+      "secondaryOwner": { "function": "Reliability", "code": "REL-05" },
+      "dataGaps": ["Lube-oil water content at hourly resolution", "Lube-oil cooler tube integrity test"]
+    },
+    {
+      "equipmentTag": "PM-4405B",
+      "sourceRcaId": "AR-2026-NUP-0089",
+      "rootCause": "Motor DE bearing failure from grease degradation — fixed 12-month re-lube interval, no bearing-temperature trending",
+      "action": {
+        "title": "Move to risk-based 4-monthly re-greasing; add bearing-temp trending/alert in CMMS",
+        "description": "Replace the fixed 12-month re-lube interval with risk-based 4-monthly re-greasing and add bearing-temperature trending with an alert in CMMS."
+      },
+      "owner": { "function": "Reliability", "code": "REL-02" },
+      "dataGaps": ["Grease condition / last re-lube date", "Winding temperature at hourly resolution"]
+    },
+    {
+      "equipmentTag": "HE-3301",
+      "sourceRcaId": "AR-2026-ZCU-0165",
+      "rootCause": "Tube-side coke/polymer fouling from high feed heavy-ends; no dP-based cleaning trigger",
+      "action": {
+        "title": "Add dP-based cleaning trigger and alarm; tighten feed heavy-ends control & filtration",
+        "description": "Add a tube-side dP-based cleaning trigger and alarm, and tighten feed heavy-ends control and filtration."
+      },
+      "owner": { "function": "Maintenance", "code": "STA-02" },
+      "dataGaps": ["Tube-side dP at hourly resolution", "Heat duty at hourly resolution"]
+    },
+    {
+      "equipmentTag": "BL-5702",
+      "sourceRcaId": "AR-2026-OPP-0203",
+      "rootCause": "Coupling misalignment with soft-foot and over-aged elastomer element; no alignment check in PM",
+      "action": {
+        "title": "Add 6-monthly laser alignment & soft-foot check to PM; track coupling-element life (12 mo)",
+        "description": "Add a 6-monthly laser alignment and soft-foot check to the PM plan and track coupling-element life (12 months)."
+      },
+      "owner": { "function": "Maintenance", "code": "ROT-01" },
+      "dataGaps": ["Alignment / coupling offset at hourly resolution", "2X vibration harmonic (spectrum)"]
+    }
+  ],
+  "generic": [
+    {
+      "id": "G1",
+      "pattern": "Vibration ↑ on rotating equipment, bearing temp normal",
+      "when": {
+        "primaryRole": "vibration",
+        "primaryDirection": "up",
+        "flatRoles": ["temperature"],
+        "disciplines": ["ROT", "ELE"]
+      },
+      "whenIncident": { "mechanisms": ["High Vibration", "Loose"], "typeCodes": ["PU", "CO", "BL", "EM", "FA", "CD"] },
+      "rootCause": "Developing misalignment or looseness (check 2X harmonic, soft-foot, coupling)",
+      "action": {
+        "title": "Laser alignment + soft-foot check within 72 h",
+        "description": "Perform laser shaft alignment and a soft-foot check within 72 h; inspect the coupling element and check the vibration spectrum for a 2X component."
+      },
+      "ownerFunction": "Maintenance",
+      "ownerPrefix": "ROT",
+      "dataGaps": ["Vibration spectrum (1X/2X harmonics)", "Shaft alignment / coupling offset measurement"]
+    },
+    {
+      "id": "G2",
+      "pattern": "Bearing/winding temperature ramps, vibration flat, motor-driven",
+      "when": {
+        "primaryRole": "temperature",
+        "primaryDirection": "up",
+        "flatRoles": ["vibration"],
+        "motorDriven": true
+      },
+      "whenIncident": { "mechanisms": ["Overheat"], "typeCodes": ["EM"] },
+      "rootCause": "Lubrication degradation (grease/oil) in motor bearing",
+      "action": {
+        "title": "Inspect grease condition, shorten re-lube interval, add temperature trending",
+        "description": "Inspect bearing grease condition, shorten the re-lube interval on a risk basis, and add bearing-temperature trending with an alert."
+      },
+      "ownerFunction": "Reliability",
+      "ownerPrefix": "REL",
+      "dataGaps": ["Grease condition / last re-lube date", "Winding temperature at hourly resolution"]
+    },
+    {
+      "id": "G3",
+      "pattern": "Vibration ↑ with lube-oil system on machine",
+      "when": {
+        "primaryRole": "vibration",
+        "primaryDirection": "up",
+        "monitoredParameterMatches": "lube ?oil"
+      },
+      "rootCause": "Oil contamination / bearing distress",
+      "action": {
+        "title": "Lube-oil sample (water, particles); inspect cooler integrity",
+        "description": "Take a lube-oil sample for water and particle content and inspect lube-oil cooler integrity; trend bearing condition until resolved."
+      },
+      "ownerFunction": "Reliability",
+      "ownerPrefix": "REL",
+      "dataGaps": ["Lube-oil water content at hourly resolution", "Oil particle count"]
+    },
+    {
+      "id": "G4",
+      "pattern": "Throughput/duty ↓ on exchanger with dP ↑",
+      "when": {
+        "primaryRole": "feed_rate",
+        "primaryDirection": "down",
+        "equipmentTypeMatches": "exchanger",
+        "weeklyTrendBonus": { "parameterMatches": "dP", "direction": "up" }
+      },
+      "whenIncident": { "mechanisms": ["Fouling"], "typeCodes": ["HB", "TX"] },
+      "rootCause": "Fouling",
+      "action": {
+        "title": "Review cleaning trigger; schedule cleaning",
+        "description": "Review the cleaning trigger (dP / duty based) and schedule exchanger cleaning; check feed quality for fouling precursors."
+      },
+      "ownerFunction": "Maintenance",
+      "ownerPrefix": "STA",
+      "dataGaps": ["Tube-side dP at hourly resolution", "Heat duty at hourly resolution"]
+    },
+    {
+      "id": "G5",
+      "pattern": "Seal-flush / discharge pressure ↓ on pump",
+      "when": {
+        "deviatingRoles": [{ "role": "discharge_pressure", "direction": "down" }],
+        "equipmentTypeMatches": "pump"
+      },
+      "whenIncident": { "mechanisms": ["Leakage"], "typeCodes": ["PU"], "componentMatches": "seal" },
+      "rootCause": "Seal dry-running or cavitation",
+      "action": {
+        "title": "Check flush plan, NPSH margin, feed-swing ramp rate",
+        "description": "Check the seal-flush plan and flow, verify NPSH margin during feed swings, and review the feed-swing ramp rate."
+      },
+      "ownerFunction": "Reliability",
+      "ownerPrefix": "REL",
+      "dataGaps": ["Seal-flush flow at hourly resolution", "Suction pressure / NPSH margin"]
+    }
+  ],
+  "default": {
+    "rootCause": "Insufficient signal to discriminate a cause — no rule pattern matched the available data",
+    "action": {
+      "title": "Complete the RCA with 4P / 4M+1E verification",
+      "description": "Assign the RCA owner to complete 4P and 4M+1E verification and collect the missing condition data before choosing corrective action."
+    },
+    "ownerFunction": "Reliability",
+    "ownerPrefix": "REL",
+    "dataGaps": ["Condition-monitoring data for this asset (only Incident Database data is available)"]
+  }
+}

@@ -13,12 +13,14 @@
     "typecheck": "tsc --noEmit",
     "db:reset": "prisma db push --force-reset --skip-generate && prisma db seed",
     "db:seed": "prisma db seed",
-    "detect:validate": "tsx scripts/validate-detector.ts"
+    "detect:validate": "tsx scripts/validate-detector.ts",
+    "verify": "tsx scripts/verify-dod.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.131.0",
     "@base-ui/react": "^1.8.0",
     "@prisma/client": "6.19.3",
     "class-variance-authority": "^0.7.1",

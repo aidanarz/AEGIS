@@ -30,9 +30,9 @@ export function LossTrendChart({ data, qs }: { data: Point[]; qs: string }) {
             cursor={{ fill: "rgba(77,193,218,0.12)" }}
           />
           <Legend wrapperStyle={{ fontSize: 11 }} />
-          <Bar yAxisId="loss" dataKey="actual" name="Actual loss" stackId="l" fill="#24417b" cursor="pointer" />
-          <Bar yAxisId="loss" dataKey="potential" name="Potential loss" stackId="l" fill="#4dc1da" cursor="pointer" />
-          <Line yAxisId="n" dataKey="incidents" name="Incidents" stroke="#8cc63e" strokeWidth={2} dot={false} />
+          <Bar yAxisId="loss" dataKey="actual" name="Actual loss" stackId="l" fill="#24417b" cursor="pointer" isAnimationActive={false} />
+          <Bar yAxisId="loss" dataKey="potential" name="Potential loss" stackId="l" fill="#4dc1da" cursor="pointer" isAnimationActive={false} />
+          <Line yAxisId="n" dataKey="incidents" name="Incidents" stroke="#8cc63e" strokeWidth={2} dot={false} isAnimationActive={false} />
         </ComposedChart>
       </ResponsiveContainer>
     </div>

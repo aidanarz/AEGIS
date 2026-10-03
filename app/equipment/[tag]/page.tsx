@@ -111,7 +111,9 @@ export default async function EquipmentPage({ params }: { params: Promise<{ tag:
                   <li key={a.id} className="flex items-center gap-2 py-2 text-sm">
                     <SeverityChip severity={a.severity} />
                     <div className="min-w-0 flex-1">
-                      <div className="truncate">{a.title}</div>
+                      <Link href={`/alerts/${a.id}`} className="block truncate text-navy hover:text-cyan-deep hover:underline">
+                        {a.title}
+                      </Link>
                       <div className="text-[11px] text-muted-foreground">
                         {a.source} · {fmtDateTime(a.triggeredAt)}
                       </div>

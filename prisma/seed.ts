@@ -49,6 +49,7 @@ const CAPA_STATUS: Record<string, ActionStatus> = {
 
 async function clear() {
   // Child tables first.
+  await prisma.actionEvent.deleteMany();
   await prisma.action.deleteMany();
   await prisma.aiAnalysis.deleteMany();
   await prisma.alert.deleteMany();
@@ -268,6 +269,9 @@ async function main() {
             rcaId: r.rcaId,
             rootCauseRef: c.ref,
             capaActionId: capa.id,
+            events: {
+              create: { kind: "created", detail: `Imported from ${r.rcaId} ${c.kind} CAPA ${c.ref} (source status "${"sourceStatus" in c ? c.sourceStatus : ""}")`, byRole: "seed" },
+            },
           },
         });
       }

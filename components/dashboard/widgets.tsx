@@ -91,6 +91,7 @@ export function TopAlerts({ alerts }: { alerts: AlertRow[] }) {
   if (!alerts.length) return <p className="text-sm text-muted-foreground">No open alerts.</p>;
   return (
     <ol className="divide-y divide-card-border">
+      {/* title → alert detail (AI root cause); tag → equipment three-scale view */}
       {alerts.map((a, idx) => (
         <li key={a.id} className="flex items-center gap-3 py-2.5">
           <span className="w-5 text-center font-mono text-sm font-bold text-muted-foreground">{idx + 1}</span>
@@ -110,7 +111,9 @@ export function TopAlerts({ alerts }: { alerts: AlertRow[] }) {
               {a.plantCode} · {SOURCE_LABEL[a.source]} · {fmtDate(a.triggeredAt)}
               {a.ownerCode && ` · owner ${a.ownerCode} (${a.ownerFunction ?? "unmapped"})`}
             </span>
-            <div className="truncate text-sm">{a.title}</div>
+            <Link href={`/alerts/${a.id}`} className="block truncate text-sm hover:text-cyan-deep hover:underline">
+              {a.title}
+            </Link>
             {a.relatedOpenAlerts > 0 && <div className="text-[11px] text-muted-foreground">+{a.relatedOpenAlerts} more open alert(s) on this asset</div>}
           </div>
           <PriorityScore score={a.priorityScore} breakdown={a.breakdown} />
