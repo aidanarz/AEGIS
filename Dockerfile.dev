@@ -1,0 +1,34 @@
+# =====================================================================
+# Development Environment — Ubuntu 24.04 + Node.js 22
+# Container ini tidak terikat ke satu project.
+# Semua project di-mount dari host dan dijalankan secara manual.
+# =====================================================================
+FROM ubuntu:24.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install tools yang sering dibutuhkan saat development
+RUN apt-get update && apt-get install -y \
+    curl \
+    ca-certificates \
+    git \
+    vim \
+    nano \
+    wget \
+    unzip \
+    build-essential \
+    sqlite3 \
+    && curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
+    && apt-get install -y nodejs \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install pnpm dan tsx secara global (opsional tapi berguna)
+RUN npm install -g tsx typescript
+
+# Workspace: semua project akan di-mount ke sini
+WORKDIR /workspace
+
+# Container tetap hidup tanpa melakukan apapun
+# Anda masuk via "docker compose exec dev bash" dan jalankan sendiri
+CMD ["sleep", "infinity"]

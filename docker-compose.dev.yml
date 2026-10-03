@@ -1,0 +1,20 @@
+services:
+  dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: dev-env
+    stdin_open: true   # agar terminal interaktif bisa berjalan
+    tty: true          # alokasikan pseudo-TTY
+    ports:
+      # Tambah port sesuai kebutuhan project Anda
+      - "3000:3000"    # Next.js / Node default
+      - "3001:3001"    # project kedua
+      - "3002:3002"    # project ketiga
+      - "5173:5173"    # Vite
+      - "8000:8000"    # Django / FastAPI / dll
+    volumes:
+      # Mount seluruh folder Projects dari host ke dalam container.
+      # Semua project Anda langsung tersedia di /workspace/
+      - /home/chu/Projects:/workspace
+    restart: unless-stopped

@@ -1,0 +1,31 @@
+services:
+  aegis:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: aegis
+    ports:
+      - "3000:3000"
+    environment:
+      # SQLite DB disimpan di named volume (dikelola Docker)
+      DATABASE_URL: "file:/app/prisma/data/prod.db"
+      # Uncomment to enable LLM root-cause analysis:
+      # ANTHROPIC_API_KEY: "your-api-key-here"
+      NODE_ENV: production
+      PORT: "3000"
+    volumes:
+      # Named volume: dikelola Docker, performa konsisten di semua OS
+      # (Linux, macOS Docker Desktop, Windows Docker Desktop)
+      - aegis_db:/app/prisma/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+volumes:
+  aegis_db:
+    driver: local
+

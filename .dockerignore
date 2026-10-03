@@ -1,0 +1,32 @@
+# Dependencies (reinstalled in Docker)
+node_modules
+
+# Next.js build output
+.next
+out
+build
+
+# SQLite database (rebuilt from mock-data)
+prisma/dev.db
+prisma/dev.db-journal
+prisma/data/
+
+# Git
+.git
+.gitignore
+
+# Env files
+.env*.local
+.env.local
+
+# Dev / CI artifacts
+.DS_Store
+coverage
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Docs
+*.md
+docs
+PRD_Intelligence_Manufacturing*
