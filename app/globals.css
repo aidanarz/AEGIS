@@ -5,148 +5,228 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  /* PRD §7.3 brand fonts — system stacks only (app must run offline; no web-font fetch) */
-  --font-sans: "Calibri", "Inter", "Segoe UI", system-ui, sans-serif;
-  --font-mono: ui-monospace, "Cascadia Mono", "Consolas", monospace;
-  --font-heading: "Cambria", "Georgia", serif;
-  /* PRD §7.3 brand colors → utilities: bg-navy, text-cyan-deep, border-card-border … */
-  --color-navy: #24417b;
-  --color-navy-deep: #162a52;
-  --color-cyan: #4dc1da;
-  --color-cyan-deep: #1f8fae;
-  --color-lime: #8cc63e;
-  --color-lime-deep: #3ab54a;
-  --color-app-bg: #f5f9fc;
-  --color-card-border: #e1e9f2;
-  /* PRD §7.3 severity colors */
-  --color-sev-critical: #e4572e;
-  --color-sev-high: #f2994a;
-  --color-sev-medium: #f2c94c;
-  --color-sev-low: #8cc63e;
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  /* ── Fonts ──────────────────────────────────────────────────────── */
+  --font-sans:    var(--font-inter), "Inter", system-ui, sans-serif;
+  --font-mono:    var(--font-jetbrains-mono), "JetBrains Mono", "Cascadia Mono", ui-monospace, monospace;
+  --font-heading: var(--font-inter), "Inter", system-ui, sans-serif;
+
+  /* ── Surface & Ink ──────────────────────────────────────────────── */
+  --color-surface:          #F4F6F8;   /* page background */
+  --color-panel:            #FFFFFF;   /* content panel / card */
+  --color-ink:              #111827;   /* primary text */
+  --color-ink-muted:        #6B7280;   /* secondary text, labels */
+  --color-ink-faint:        #9CA3AF;   /* placeholders, disabled */
+  --color-border:           #E5E7EB;   /* borders, dividers */
+  --color-border-strong:    #D1D5DB;   /* table header borders */
+
+  /* ── Sidebar Rail ───────────────────────────────────────────────── */
+  --color-rail:             #1C2B3A;   /* sidebar background */
+  --color-rail-hover:       #253649;   /* sidebar item hover */
+  --color-rail-active:      #2D4259;   /* sidebar item active bg */
+  --color-rail-text:        #C9D8E8;   /* sidebar text */
+  --color-rail-muted:       #7A9AB8;   /* sidebar group labels */
+  --color-rail-border:      #2D4259;   /* sidebar borders */
+
+  /* ── Accent ─────────────────────────────────────────────────────── */
+  --color-accent:           #2563EB;   /* links, active indicator, focus ring */
+  --color-accent-light:     #EFF6FF;   /* accent bg tint */
+
+  /* ── Status ─────────────────────────────────────────────────────── */
+  --color-status-critical:  #DC2626;
+  --color-status-critical-bg: #FEF2F2;
+  --color-status-critical-border: #FECACA;
+  --color-status-warning:   #D97706;
+  --color-status-warning-bg: #FFFBEB;
+  --color-status-warning-border: #FDE68A;
+  --color-status-ok:        #16A34A;
+  --color-status-ok-bg:     #F0FDF4;
+  --color-status-ok-border: #BBF7D0;
+  --color-status-stale:     #6B7280;
+  --color-status-stale-bg:  #F9FAFB;
+  --color-status-stale-border: #E5E7EB;
+
+  /* ── shadcn/ui semantic aliases ─────────────────────────────────── */
+  --color-background:           var(--color-surface);
+  --color-foreground:           var(--color-ink);
+  --color-card:                 var(--color-panel);
+  --color-card-foreground:      var(--color-ink);
+  --color-popover:              var(--color-panel);
+  --color-popover-foreground:   var(--color-ink);
+  --color-primary:              var(--color-accent);
+  --color-primary-foreground:   #FFFFFF;
+  --color-secondary:            var(--color-surface);
+  --color-secondary-foreground: var(--color-ink);
+  --color-muted:                #F3F4F6;
+  --color-muted-foreground:     var(--color-ink-muted);
+  --color-accent-color:         var(--color-accent-light);
+  --color-accent-foreground:    var(--color-accent);
+  --color-destructive:          var(--color-status-critical);
+  --color-destructive-foreground: #FFFFFF;
+  --color-input:                var(--color-border);
+  --color-ring:                 var(--color-accent);
+
+  /* ── Chart palette (Recharts) ───────────────────────────────────── */
+  --color-chart-1: #2563EB;
+  --color-chart-2: #16A34A;
+  --color-chart-3: #D97706;
+  --color-chart-4: #9333EA;
+  --color-chart-5: #DC2626;
+
+  /* ── Semantic legacy aliases (used in existing charts/components) ── */
+  /* Keep these so existing code referencing them doesn't break       */
+  --color-navy:       var(--color-ink);
+  --color-navy-deep:  #0F172A;
+  --color-cyan:       var(--color-accent);
+  --color-cyan-deep:  #1D4ED8;
+  --color-lime:       #22C55E;
+  --color-lime-deep:  var(--color-status-ok);
+  --color-app-bg:     var(--color-surface);
+  --color-card-border: var(--color-border);
+
+  /* Legacy severity (kept for existing SeverityChip references) */
+  --color-sev-critical: var(--color-status-critical);
+  --color-sev-high:     var(--color-status-warning);
+  --color-sev-medium:   #CA8A04;
+  --color-sev-low:      var(--color-status-ok);
+
+  /* ── Radius ─────────────────────────────────────────────────────── */
+  --radius:    0.375rem;   /* 6px — tighter than before */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+
+  /* ── Sidebar (shadcn compat) ─────────────────────────────────────── */
+  --color-sidebar:                    var(--color-rail);
+  --color-sidebar-foreground:         var(--color-rail-text);
+  --color-sidebar-primary:            var(--color-accent);
+  --color-sidebar-primary-foreground: #FFFFFF;
+  --color-sidebar-accent:             var(--color-rail-active);
+  --color-sidebar-accent-foreground:  var(--color-rail-text);
+  --color-sidebar-border:             var(--color-rail-border);
+  --color-sidebar-ring:               var(--color-accent);
 }
 
+/* ── CSS Custom Properties (shadcn runtime) ──────────────────────────── */
 :root {
-  --background: #f5f9fc;
-  --foreground: #162a52;
-  --card: oklch(1 0 0);
-  --card-foreground: #162a52;
-  --popover: oklch(1 0 0);
-  --popover-foreground: #162a52;
-  --primary: #24417b;
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: #eaf2f9;
-  --secondary-foreground: #24417b;
-  --muted: #eef3f8;
-  --muted-foreground: #52627e;
-  --accent: #e3f5f9;
-  --accent-foreground: #1f8fae;
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: #e1e9f2;
-  --input: #e1e9f2;
-  --ring: #4dc1da;
-  --chart-1: #24417b;
-  --chart-2: #1f8fae;
-  --chart-3: #4dc1da;
-  --chart-4: #8cc63e;
-  --chart-5: #162a52;
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --background:           #F4F6F8;
+  --foreground:           #111827;
+  --card:                 #FFFFFF;
+  --card-foreground:      #111827;
+  --popover:              #FFFFFF;
+  --popover-foreground:   #111827;
+  --primary:              #2563EB;
+  --primary-foreground:   #FFFFFF;
+  --secondary:            #F4F6F8;
+  --secondary-foreground: #111827;
+  --muted:                #F3F4F6;
+  --muted-foreground:     #6B7280;
+  --accent:               #EFF6FF;
+  --accent-foreground:    #2563EB;
+  --destructive:          #DC2626;
+  --border:               #E5E7EB;
+  --input:                #E5E7EB;
+  --ring:                 #2563EB;
+  --chart-1:              #2563EB;
+  --chart-2:              #16A34A;
+  --chart-3:              #D97706;
+  --chart-4:              #9333EA;
+  --chart-5:              #DC2626;
+  --radius:               0.375rem;
+  --sidebar:              #1C2B3A;
+  --sidebar-foreground:   #C9D8E8;
+  --sidebar-primary:      #2563EB;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent:       #2D4259;
+  --sidebar-accent-foreground: #C9D8E8;
+  --sidebar-border:       #2D4259;
+  --sidebar-ring:         #2563EB;
 }
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
-}
-
+/* ── Base Layer ─────────────────────────────────────────────────────── */
 @layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
   html {
-    @apply font-sans;
+    @apply font-sans antialiased;
+    font-size: 14px;
+    /* Tabular numbers as global default — critical for data dashboards */
+    font-variant-numeric: tabular-nums;
+  }
+
+  body {
+    @apply bg-[#F4F6F8] text-[#111827];
+  }
+
+  /* Focus ring — always visible, keyboard-friendly */
+  :focus-visible {
+    outline: 2px solid #2563EB;
+    outline-offset: 2px;
+    border-radius: 3px;
+  }
+
+  /* Inputs & form controls */
+  input, textarea, select, button {
+    outline-color: #2563EB;
+  }
+
+  /* ── Typography scale ─────────────────────────────────────────── */
+  h1 {
+    font-family: var(--font-sans);
+    font-size: 1.375rem;    /* 19.25px at 14px base */
+    font-weight: 600;
+    color: #111827;
+    letter-spacing: -0.02em;
+    line-height: 1.3;
+  }
+  h2 {
+    font-family: var(--font-sans);
+    font-size: 1.071rem;    /* ~15px */
+    font-weight: 600;
+    color: #111827;
+    letter-spacing: -0.01em;
+    line-height: 1.35;
+  }
+  h3 {
+    font-family: var(--font-sans);
+    font-size: 0.929rem;    /* ~13px */
+    font-weight: 600;
+    color: #374151;
+    line-height: 1.4;
+  }
+
+  /* Monospace for sensor values, IDs, timestamps */
+  .mono-value {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-size: 0.875em;
   }
 }
 
-@layer base {
-  h1, h2, h3, h4 {
-    font-family: var(--font-heading);
-    color: var(--color-navy);
+/* ── Utility: Status row backgrounds ─────────────────────────────────── */
+@layer utilities {
+  .row-critical {
+    background-color: #FEF2F2;
+  }
+  .row-warning {
+    background-color: #FFFBEB;
+  }
+
+  /* Stale / no-data hatching pattern */
+  .no-data-cell {
+    background-image: repeating-linear-gradient(
+      45deg,
+      #F3F4F6,
+      #F3F4F6 3px,
+      #E5E7EB 3px,
+      #E5E7EB 6px
+    );
+  }
+
+  /* Reduced motion — skip all transitions */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }

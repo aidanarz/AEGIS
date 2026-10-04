@@ -14,7 +14,7 @@ export function FlagChips({ flags, codes }: { flags: string[]; codes: string[] }
         <Link
           key={c}
           href={`/data-sources/dq/${c}`}
-          className="rounded border border-card-border bg-app-bg px-1 font-mono text-[10px] text-cyan-deep hover:border-cyan"
+          className="rounded border border-[#F9DFDF] bg-[#FBEFEF] px-1 font-mono text-[10px] text-[#9E4040] hover:border-[#F5AFAF]"
         >
           {c}
         </Link>

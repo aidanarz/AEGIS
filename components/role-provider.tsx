@@ -77,22 +77,19 @@ export function useRoleFetch() {
   return (url: string, init: RequestInit = {}) => fetch(url, { ...init, headers: { ...(init.headers ?? {}), "x-role": tag } });
 }
 
-const selectCls = "rounded-md border border-white/20 bg-navy px-2 py-1 text-sm text-white focus:outline-none focus:ring-2 focus:ring-cyan";
+const selectCls = "w-full rounded-lg border border-[#F9DFDF] bg-white px-2 py-1.5 text-xs text-[#3D1A1A] focus:outline-none focus:ring-2 focus:ring-[#F5AFAF]";
 
 export function RoleSwitcher() {
   const { role, setRole, headFunction, setHeadFunction, ownerCode, setOwnerCode } = useRole();
   return (
-    <div className="flex items-center gap-2 text-xs text-white/70">
-      <label className="flex items-center gap-2 whitespace-nowrap">
-        <span className="hidden xl:inline">View as</span>
-        <select value={role} onChange={(e) => setRole(e.target.value as RoleId)} className={selectCls}>
-          {ROLES.map((r) => (
-            <option key={r.id} value={r.id}>
-              {r.label}
-            </option>
-          ))}
-        </select>
-      </label>
+    <div className="flex flex-col gap-1.5">
+      <select value={role} onChange={(e) => setRole(e.target.value as RoleId)} className={selectCls}>
+        {ROLES.map((r) => (
+          <option key={r.id} value={r.id}>
+            {r.label}
+          </option>
+        ))}
+      </select>
       {role === "function_head" && (
         <select aria-label="Your function" value={headFunction} onChange={(e) => setHeadFunction(e.target.value)} className={selectCls}>
           {HEAD_FUNCTIONS.map((f) => (
@@ -113,47 +110,15 @@ export function RoleSwitcher() {
 
 /** Thin bar under the nav: who you are viewing as, and where that persona starts. */
 export function RoleHint() {
-  const { role, headFunction, ownerCode } = useRole();
-  const pathname = usePathname();
-  const r = ROLES.find((x) => x.id === role)!;
-  const home = role === "function_head" ? `/dashboard/${headFunction.toLowerCase()}` : role === "action_owner" ? `/actions?owner=${ownerCode}` : r.home;
-  const atHome = pathname === home.split("?")[0];
-  return (
-    <div className="border-b border-card-border bg-white/70">
-      <div className="mx-auto flex max-w-[1400px] items-center gap-2 px-6 py-1.5 text-xs text-muted-foreground">
-        <span>
-          Viewing as <strong className="text-navy">{r.label}</strong>
-          {role === "function_head" && <> · {headFunction}</>}
-          {role === "action_owner" && (
-            <>
-              {" "}
-              · <span className="font-mono">{ownerCode}</span>
-            </>
-          )}{" "}
-          — {r.hint}
-        </span>
-        {!atHome && (
-          <Link href={home} className="ml-auto inline-flex items-center gap-1 font-semibold text-cyan-deep hover:underline">
-            Go to your view <ArrowRight className="size-3" />
-          </Link>
-        )}
-        <span className={cn("text-[10px] italic", atHome ? "ml-auto" : "")}>prototype persona switcher — no authentication</span>
-      </div>
-    </div>
-  );
+  return null;
 }
 
-/** FR-2.3 — emphasises a dashboard block for the listed roles (ring + label) and floats it to the top. */
+/** FR-2.3 — floats the block to the top for the listed roles, no visual decoration. */
 export function RoleEmphasis({ roles, children, className }: { roles: RoleId[]; children: React.ReactNode; className?: string }) {
   const { role } = useRole();
   const on = roles.includes(role);
   return (
-    <div className={cn("relative transition-all", on ? "order-first rounded-xl ring-2 ring-cyan ring-offset-4 ring-offset-app-bg" : "order-none", className)}>
-      {on && (
-        <span className="absolute -top-3 right-3 z-10 rounded-full bg-cyan px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-navy-deep">
-          Focus for your role
-        </span>
-      )}
+    <div className={cn(on ? "order-first" : "order-none", className)}>
       {children}
     </div>
   );

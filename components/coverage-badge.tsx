@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 const STYLE: Record<CoverageLevel, { cls: string; Icon: typeof CheckCircle2 }> = {
   connected: { cls: "bg-lime/15 text-lime-deep border-lime/40", Icon: CheckCircle2 },
   proxy: { cls: "bg-sev-medium/20 text-[#8a6d00] border-sev-medium/60", Icon: AlertTriangle },
-  none: { cls: "bg-muted text-muted-foreground border-card-border", Icon: CircleSlash },
+  none: { cls: "bg-[#F9DFDF] text-[#C97070] border-[#F5AFAF]/30", Icon: CircleSlash },
 };
 
 /** §6.7 coverage badge — icon + label (not color alone, NFR accessibility) + tooltip explaining why. */

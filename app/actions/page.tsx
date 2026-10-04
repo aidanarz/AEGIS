@@ -54,7 +54,7 @@ export default async function ActionsPage({ searchParams }: { searchParams: Prom
   const Chip = ({ k, v, label }: { k: string; v: string; label: string }) => (
     <Link
       href={href({ [k]: sp[k] === v ? undefined : v })}
-      className={cn("rounded-full border px-2 py-0.5 text-xs", sp[k] === v ? "border-navy bg-navy text-white" : "border-card-border bg-white text-navy hover:border-cyan")}
+      className={cn("rounded-full border px-2 py-0.5 text-xs", sp[k] === v ? "border-[#F5AFAF] bg-[#F5AFAF]/20 text-[#7C2D2D] font-medium" : "border-[#F9DFDF] bg-white text-[#9E4040] hover:border-[#F5AFAF] hover:bg-[#FBEFEF]")}
     >
       {label}
     </Link>
@@ -62,11 +62,20 @@ export default async function ActionsPage({ searchParams }: { searchParams: Prom
 
   return (
     <>
-      <PageHeader pillar="Pillar 3 · Ownership & tracking" title="Action Tracker">
-        <div className="text-right text-sm">
-          <span className="font-bold text-navy">{fmtNum(count("open"))}</span> open · <span className="font-bold text-navy">{fmtNum(count("in_progress"))}</span> in progress ·{" "}
-          <span className="font-bold text-lime-deep">{fmtNum(count("done"))}</span> done · <span className="font-bold text-sev-critical">{overdue}</span> overdue (shown)
-          <div className="text-xs text-muted-foreground">Seeded with the 20 real CAPA items (corrective + pro-active) from the 5 RCA decks — nothing invented.</div>
+      <PageHeader title="Actions">
+        <div className="flex items-center gap-6">
+          <div className="text-center">
+            <div className="text-[28px] font-bold text-[#7C2D2D]">{fmtNum(count("open"))}</div>
+            <div className="text-[12px] text-[#C97070]">Open</div>
+          </div>
+          <div className="text-center">
+            <div className="text-[28px] font-bold text-[#7C2D2D]">{fmtNum(count("in_progress"))}</div>
+            <div className="text-[12px] text-[#C97070]">In Progress</div>
+          </div>
+          <div className="text-center">
+            <div className="text-[28px] font-bold text-sev-critical">{overdue}</div>
+            <div className="text-[12px] text-[#C97070]">Overdue</div>
+          </div>
         </div>
       </PageHeader>
 
